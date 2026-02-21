@@ -47,15 +47,11 @@ export default function Flashcards() {
       setFlipped(false);
       setKnownCount(0);
       setShowSummary(false);
-
     } catch (err) {
       console.error("Flashcard error:", err);
     }
   };
 
-  /* =========================
-     NEXT CARD
-  ========================= */
   const handleNext = (known) => {
     if (known) setKnownCount((prev) => prev + 1);
 
@@ -79,30 +75,38 @@ export default function Flashcards() {
     : 0;
 
   return (
-    <div className="flex justify-center py-10 px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-[80vh] flex items-center justify-center  p-6">
+      <div className="w-full max-w-3xl bg-white rounded-[36px] shadow-[0_20px_60px_rgba(0,0,0,0.08)] p-12 transition-all duration-500">
 
-        {/* CONFIG CARD */}
+        {/* ================= SETUP ================= */}
         {!cards.length && (
-          <div className="bg-white shadow-lg rounded-3xl p-8 space-y-5">
+          <div className="space-y-8">
 
-            <h2 className="text-xl font-bold text-center">
-              Generate Flashcards
-            </h2>
+            <div className="text-center">
+              <h2 className="text-3xl font-bold mb-2">
+                Flashcard Studio 📚
+              </h2>
+              <p className="text-gray-500">
+                Master concepts using active recall.
+              </p>
+            </div>
 
-            {/* SUBJECT (Dynamic from user) */}
-            <select
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className="w-full p-3 bg-gray-100 rounded-xl"
-            >
-              <option value="">Select Subject</option>
+            {/* SUBJECT PILLS */}
+            <div className="flex flex-wrap gap-3 justify-center">
               {user?.subjects?.map((sub, index) => (
-                <option key={index} value={sub}>
+                <button
+                  key={index}
+                  onClick={() => setSubject(sub)}
+                  className={`px-5 py-2 rounded-full transition-all duration-300 ${
+                    subject === sub
+                      ? "bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg scale-105"
+                      : "bg-white border hover:shadow-md"
+                  }`}
+                >
                   {sub}
-                </option>
+                </button>
               ))}
-            </select>
+            </div>
 
             {/* TOPIC */}
             <input
@@ -110,19 +114,19 @@ export default function Flashcards() {
               placeholder="Enter Topic"
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              className="w-full p-3 bg-gray-100 rounded-xl"
+              className="w-full px-6 py-4 rounded-2xl bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-400 transition"
             />
 
             {/* DIFFICULTY */}
-            <div className="flex gap-2 justify-center">
+            <div className="flex justify-center gap-4">
               {["Easy", "Medium", "Hard"].map((lvl) => (
                 <button
                   key={lvl}
                   onClick={() => setDifficulty(lvl)}
-                  className={`px-3 py-2 rounded-lg text-sm ${
+                  className={`px-6 py-2 rounded-full transition-all duration-300 ${
                     difficulty === lvl
-                      ? "bg-purple-500 text-white"
-                      : "bg-gray-200"
+                      ? "bg-purple-100 text-purple-600 scale-105 shadow"
+                      : "bg-white border hover:shadow"
                   }`}
                 >
                   {lvl}
@@ -136,7 +140,7 @@ export default function Flashcards() {
               onChange={(e) =>
                 setNumberOfCards(Number(e.target.value))
               }
-              className="w-full p-3 bg-gray-100 rounded-xl"
+              className="w-full px-6 py-4 rounded-2xl bg-gray-100 focus:outline-none"
             >
               <option value={5}>5 Cards</option>
               <option value={10}>10 Cards</option>
@@ -145,34 +149,37 @@ export default function Flashcards() {
 
             <button
               onClick={generateCards}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold"
+              className="w-full py-4 rounded-2xl text-white font-semibold bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 hover:scale-105 transition-all duration-300 shadow-xl"
             >
-              Generate
+              Generate Flashcards →
             </button>
           </div>
         )}
 
-        {/* FLASHCARD VIEW */}
+        {/* ================= STUDY MODE ================= */}
         {cards.length > 0 && !showSummary && (
-          <div className="bg-white shadow-lg rounded-3xl p-8">
+          <div className="space-y-8">
 
-            {/* Progress */}
-            <div className="mb-6">
-              <div className="h-2 bg-gray-200 rounded-full">
+            {/* PROGRESS */}
+            <div>
+              <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
                 <div
-                  className="h-2 bg-blue-500 rounded-full transition-all"
+                  className="bg-gradient-to-r from-purple-500 to-indigo-500 h-3 rounded-full transition-all duration-500"
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                {currentIndex + 1} / {cards.length}
+              <p className="text-center text-sm text-gray-500 mt-2">
+                Card {currentIndex + 1} of {cards.length}
               </p>
             </div>
 
-            {/* Flip Card */}
-            <div onClick={() => setFlipped(!flipped)} className="cursor-pointer">
+            {/* CARD */}
+            <div
+              onClick={() => setFlipped(!flipped)}
+              className="cursor-pointer perspective"
+            >
               <div
-                className="relative w-full h-80 transition-transform duration-500"
+                className="relative w-full h-96 transition-transform duration-500"
                 style={{
                   transformStyle: "preserve-3d",
                   transform: flipped
@@ -180,41 +187,43 @@ export default function Flashcards() {
                     : "rotateY(0deg)",
                 }}
               >
-                {/* Front */}
+                {/* FRONT */}
                 <div
-                  className="absolute w-full h-full bg-gray-100 rounded-2xl flex items-center justify-center p-6 text-center"
+                  className="absolute w-full h-full bg-white border rounded-3xl shadow-lg flex items-center justify-center p-10 text-center"
                   style={{ backfaceVisibility: "hidden" }}
                 >
-                  <h3 className="text-lg font-semibold">
+                  <h3 className="text-2xl font-semibold">
                     {cards[currentIndex].question}
                   </h3>
                 </div>
 
-                {/* Back */}
+                {/* BACK */}
                 <div
-                  className="absolute w-full h-full bg-purple-100 rounded-2xl flex items-center justify-center p-6 text-center"
+                  className="absolute w-full h-full bg-gradient-to-br from-purple-100 to-indigo-100 rounded-3xl shadow-lg flex items-center justify-center p-10 text-center"
                   style={{
                     transform: "rotateY(180deg)",
                     backfaceVisibility: "hidden",
                   }}
                 >
-                  <p>{cards[currentIndex].answer}</p>
+                  <p className="text-lg">
+                    {cards[currentIndex].answer}
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Buttons */}
-            <div className="flex justify-center gap-4 mt-6">
+            {/* ACTION BUTTONS */}
+            <div className="flex justify-center gap-6">
               <button
                 onClick={() => handleNext(false)}
-                className="px-5 py-2 bg-red-500 text-white rounded-lg text-sm"
+                className="px-8 py-3 rounded-2xl bg-red-500 text-white font-semibold shadow-md hover:scale-105 transition"
               >
                 Unknown
               </button>
 
               <button
                 onClick={() => handleNext(true)}
-                className="px-5 py-2 bg-green-500 text-white rounded-lg text-sm"
+                className="px-8 py-3 rounded-2xl bg-green-500 text-white font-semibold shadow-md hover:scale-105 transition"
               >
                 Known
               </button>
@@ -222,26 +231,29 @@ export default function Flashcards() {
           </div>
         )}
 
-        {/* SUMMARY */}
+        {/* ================= SUMMARY ================= */}
         {showSummary && (
-          <div className="bg-white shadow-lg rounded-3xl p-8 text-center">
-            <h2 className="text-2xl font-bold mb-4">
+          <div className="text-center space-y-8">
+
+            <div className="w-40 h-40 mx-auto rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center text-white text-4xl font-bold shadow-2xl">
+              {Math.round((knownCount / cards.length) * 100)}%
+            </div>
+
+            <h2 className="text-3xl font-bold">
               Session Complete 🎉
             </h2>
 
-            <p className="text-lg mb-2">
-              {knownCount} / {cards.length} Known
-            </p>
-
-            <p className="text-gray-600 mb-6">
-              {Math.round((knownCount / cards.length) * 100)}% Mastery
-            </p>
+            <div className="bg-gray-50 p-6 rounded-2xl">
+              <p className="text-lg font-medium">
+                {knownCount} / {cards.length} Mastered
+              </p>
+            </div>
 
             <button
               onClick={resetSession}
-              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl"
+              className="px-10 py-4 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-semibold shadow-lg hover:scale-105 transition"
             >
-              New Set
+              Study Again 🔄
             </button>
           </div>
         )}

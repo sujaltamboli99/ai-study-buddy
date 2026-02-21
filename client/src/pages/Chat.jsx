@@ -3,16 +3,19 @@ import { Send } from "lucide-react";
 import API from "../services/api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useAuth } from "../context/AuthContext";
 
 const Chat = () => {
+    const { user } = useAuth();
+
     const [messages, setMessages] = useState([
         {
             role: "ai",
-            content:
-                "Hi Sujal! I'm your AI Study Buddy. I can help you with complex engineering topics, solve problems, or explain concepts. What are we studying today?",
+            content: `Hi ${user?.name || "there"}! I'm your AI Study Buddy. I can help you with complex engineering topics, solve problems, or explain concepts. What are we studying today?`,
             time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
     ]);
+
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
     const bottomRef = useRef(null);
@@ -76,10 +79,11 @@ const sendMessage = async () => {
                         )}
 
                         <div
-                            className={`max-w-2xl px-6 py-4 rounded-2xl shadow-sm ${msg.role === "user"
+                            className={`max-w-2xl px-6 py-4 rounded-2xl shadow-sm ${
+                                msg.role === "user"
                                     ? "bg-gradient-to-r from-purple-500 to-indigo-500 text-white"
                                     : "bg-white text-gray-800"
-                                }`}
+                            }`}
                         >
                             <div className="prose prose-lg max-w-none
   prose-table:border
