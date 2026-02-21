@@ -15,7 +15,7 @@ const Sidebar = () => {
     { name: "AI Chat", path: "/chat", icon: MessageSquare },
     { name: "Notes Generator", path: "/notes", icon: FileText },
     { name: "Quiz Mode", path: "/quiz", icon: Brain },
-    { name: "Study Planner", path: "/planner", icon: Calendar },
+    { name: "flashcards", path: "/flashcards", icon: Calendar },
     { name: "Progress Analytics", path: "/analytics", icon: BarChart3 },
     { name: "Profile", path: "/profile", icon: User },
   ];
