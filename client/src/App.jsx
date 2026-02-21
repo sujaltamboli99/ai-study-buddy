@@ -5,6 +5,8 @@ import Chat from "./pages/Chat";
 import Quiz from "./pages/Quiz";
 import Analytics from "./pages/Analytics";
 import Flashcards from "./pages/Flashcards";
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
 
 
 function App() {
@@ -17,6 +19,8 @@ function App() {
           <Route path="quiz" element={<Quiz />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/flashcards" element={<Flashcards />} />
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
         </Route>
       </Routes>
     </Router>
