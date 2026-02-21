@@ -11,7 +11,7 @@ import { NavLink } from "react-router-dom";
 
 const Sidebar = () => {
   const menu = [
-    { name: "Dashboard", path: "/", icon: LayoutDashboard },
+    { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
     { name: "AI Chat", path: "/chat", icon: MessageSquare },
     { name: "Notes Generator", path: "/notes", icon: FileText },
     { name: "Quiz Mode", path: "/quiz", icon: Brain },

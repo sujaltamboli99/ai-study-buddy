@@ -3,39 +3,49 @@ import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-export default function Login() {
+export default function Signup() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        { email, password }
+        "http://localhost:5000/api/auth/signup",
+        { name, email, password }
       );
 
       login(res.data.token, res.data.user);
 
-      // After login → go to dashboard
-      navigate("/dashboard");
+      // After signup → go to onboarding later
+      navigate("/onboarding");
 
     } catch (error) {
-      alert(error.response?.data?.message || "Login failed");
+      alert(error.response?.data?.message || "Signup failed");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form
-        onSubmit={handleLogin}
+        onSubmit={handleSignup}
         className="bg-white p-10 rounded-3xl shadow-xl w-full max-w-md space-y-6"
       >
-        <h2 className="text-2xl font-bold text-center">Login</h2>
+        <h2 className="text-2xl font-bold text-center">Sign Up</h2>
+
+        <input
+          type="text"
+          placeholder="Full Name"
+          className="w-full p-3 border rounded-xl"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
 
         <input
           type="email"
@@ -59,13 +69,13 @@ export default function Login() {
           type="submit"
           className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-xl font-semibold hover:scale-105 transition"
         >
-          Login
+          Sign Up
         </button>
 
         <p className="text-center text-sm">
-          Don't have an account?{" "}
-          <a href="/signup" className="text-blue-600 font-semibold">
-            Sign up
+          Already have an account?{" "}
+          <a href="/login" className="text-blue-600 font-semibold">
+            Login
           </a>
         </p>
       </form>

@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import API from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 const Quiz = () => {
+  const { user } = useAuth();
+
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
   const [difficulty, setDifficulty] = useState("Easy");
@@ -13,8 +16,23 @@ const Quiz = () => {
   const [score, setScore] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  /* =========================
+     AUTO SELECT FIRST USER SUBJECT
+  ========================= */
+  useEffect(() => {
+    if (user?.subjects?.length > 0) {
+      setSubject(user.subjects[0]);
+    }
+  }, [user]);
+
+  /* =========================
+     GENERATE QUIZ
+  ========================= */
   const generateQuiz = async () => {
-    if (!subject || !topic) return;
+    if (!subject || !topic) {
+      alert("Please select subject and enter topic");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -30,6 +48,7 @@ const Quiz = () => {
       setCurrent(0);
       setSelected({});
       setScore(null);
+
     } catch (err) {
       console.error(err);
     } finally {
@@ -37,6 +56,9 @@ const Quiz = () => {
     }
   };
 
+  /* =========================
+     NEXT QUESTION
+  ========================= */
   const handleNext = () => {
     if (current < questions.length - 1) {
       setCurrent(current + 1);
@@ -45,36 +67,52 @@ const Quiz = () => {
     }
   };
 
-const calculateScore = async () => {
-  let correct = 0;
+  /* =========================
+     CALCULATE SCORE
+  ========================= */
+  const calculateScore = async () => {
+    let correct = 0;
 
-  questions.forEach((q, index) => {
-    const correctOption =
-      q.options[q.correctAnswer.charCodeAt(0) - 65];
+    questions.forEach((q, index) => {
+      const correctOption =
+        q.options[q.correctAnswer.charCodeAt(0) - 65];
 
-    if (selected[index] === correctOption) correct++;
-  });
+      if (selected[index] === correctOption) correct++;
+    });
 
-  setScore(correct);
+    setScore(correct);
 
-  await API.post("/quiz/save", {
-    subject,
-    topic,
-    difficulty,
-    score: correct,
-    totalQuestions: questions.length,
-  });
-};
+    try {
+      await API.post("/quiz/save", {
+        subject,
+        topic,
+        difficulty,
+        score: correct,
+        totalQuestions: questions.length,
+      });
+    } catch (err) {
+      console.error("Failed to save attempt:", err);
+    }
+  };
 
+  /* =========================
+     RESET QUIZ
+  ========================= */
   const resetQuiz = () => {
     setQuestions([]);
     setScore(null);
     setSelected({});
     setCurrent(0);
-    setSubject("");
     setTopic("");
     setDifficulty("Easy");
     setNumberOfQuestions(5);
+
+    // 🔥 Keep first user subject
+    if (user?.subjects?.length > 0) {
+      setSubject(user.subjects[0]);
+    } else {
+      setSubject("");
+    }
   };
 
   const progress =
@@ -94,17 +132,22 @@ const calculateScore = async () => {
               Generate Quiz
             </h2>
 
+            {/* SUBJECT */}
             <select
               className="w-full px-4 py-3 rounded-lg bg-gray-100 focus:outline-none"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
             >
               <option value="">Select Subject</option>
-              <option value="DBMS">DBMS</option>
-              <option value="DSA">DSA</option>
-              <option value="CN">CN</option>
+
+              {user?.subjects?.map((sub, index) => (
+                <option key={index} value={sub}>
+                  {sub}
+                </option>
+              ))}
             </select>
 
+            {/* TOPIC */}
             <input
               type="text"
               placeholder="Enter Topic (e.g. Normalization)"
@@ -113,6 +156,7 @@ const calculateScore = async () => {
               onChange={(e) => setTopic(e.target.value)}
             />
 
+            {/* DIFFICULTY */}
             <div className="flex gap-3">
               {["Easy", "Medium", "Hard"].map((level) => (
                 <button
@@ -129,6 +173,7 @@ const calculateScore = async () => {
               ))}
             </div>
 
+            {/* NUMBER OF QUESTIONS */}
             <select
               className="w-full px-4 py-3 rounded-lg bg-gray-100 focus:outline-none"
               value={numberOfQuestions}
@@ -138,6 +183,7 @@ const calculateScore = async () => {
             >
               <option value={5}>5 Questions</option>
               <option value={10}>10 Questions</option>
+              <option value={15}>15 Questions</option>
             </select>
 
             <button
@@ -208,64 +254,56 @@ const calculateScore = async () => {
         )}
 
         {/* ================= RESULT SCREEN ================= */}
-{score !== null && (
-  <div className="relative pt-6">
+        {score !== null && (
+          <div className="relative pt-6">
 
-    {/* Top Gradient Bar (inside main container) */}
-    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-t-2xl"></div>
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-t-2xl"></div>
 
-    {/* Trophy */}
-    <div className="flex justify-center mt-6 mb-6">
-      <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center text-3xl">
-        🏆
-      </div>
-    </div>
+            <div className="flex justify-center mt-6 mb-6">
+              <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center text-3xl">
+                🏆
+              </div>
+            </div>
 
-    {/* Title */}
-    <h2 className="text-3xl font-bold text-center mb-3">
-      Quiz Completed!
-    </h2>
+            <h2 className="text-3xl font-bold text-center mb-3">
+              Quiz Completed!
+            </h2>
 
-    {/* Score */}
-    <p className="text-center text-lg text-gray-600 mb-8">
-      You scored{" "}
-      <span className="text-blue-600 font-bold text-xl">
-        {score}/{questions.length}
-      </span>{" "}
-      ({Math.round((score / questions.length) * 100)}%)
-    </p>
+            <p className="text-center text-lg text-gray-600 mb-8">
+              You scored{" "}
+              <span className="text-blue-600 font-bold text-xl">
+                {score}/{questions.length}
+              </span>{" "}
+              ({Math.round((score / questions.length) * 100)}%)
+            </p>
 
-    {/* Correct / Incorrect */}
-    <div className="flex justify-center gap-6 mb-8">
+            <div className="flex justify-center gap-6 mb-8">
+              <div className="flex-1 bg-green-100 rounded-2xl p-6 text-center">
+                <p className="text-green-700 font-semibold">CORRECT</p>
+                <p className="text-3xl font-bold text-green-800">
+                  {score}
+                </p>
+              </div>
 
-      <div className="flex-1 bg-green-100 rounded-2xl p-6 text-center">
-        <p className="text-green-700 font-semibold">CORRECT</p>
-        <p className="text-3xl font-bold text-green-800">
-          {score}
-        </p>
-      </div>
+              <div className="flex-1 bg-red-100 rounded-2xl p-6 text-center">
+                <p className="text-red-600 font-semibold">INCORRECT</p>
+                <p className="text-3xl font-bold text-red-700">
+                  {questions.length - score}
+                </p>
+              </div>
+            </div>
 
-      <div className="flex-1 bg-red-100 rounded-2xl p-6 text-center">
-        <p className="text-red-600 font-semibold">INCORRECT</p>
-        <p className="text-3xl font-bold text-red-700">
-          {questions.length - score}
-        </p>
-      </div>
+            <div className="flex justify-center">
+              <button
+                onClick={resetQuiz}
+                className="px-8 py-3 rounded-xl border bg-gray-100 hover:bg-gray-200 transition"
+              >
+                🔄 Retry Quiz
+              </button>
+            </div>
 
-    </div>
-
-    {/* Retry Button */}
-    <div className="flex justify-center">
-      <button
-        onClick={resetQuiz}
-        className="px-8 py-3 rounded-xl border bg-gray-100 hover:bg-gray-200 transition"
-      >
-        🔄 Retry Quiz
-      </button>
-    </div>
-
-  </div>
-)}
+          </div>
+        )}
 
       </div>
     </div>

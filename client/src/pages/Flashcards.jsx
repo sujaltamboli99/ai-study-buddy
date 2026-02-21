@@ -1,8 +1,11 @@
-import { useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import API from "../services/api";
 
 export default function Flashcards() {
-  const [subject, setSubject] = useState("DBMS");
+  const { user } = useAuth();
+
+  const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
   const [difficulty, setDifficulty] = useState("Easy");
   const [numberOfCards, setNumberOfCards] = useState(5);
@@ -13,19 +16,46 @@ export default function Flashcards() {
   const [knownCount, setKnownCount] = useState(0);
   const [showSummary, setShowSummary] = useState(false);
 
-  const generateCards = async () => {
-    const res = await axios.post(
-      "http://localhost:5000/api/flashcards/generate",
-      { subject, topic, difficulty, numberOfCards }
-    );
+  /* =========================
+     AUTO SELECT FIRST SUBJECT
+  ========================= */
+  useEffect(() => {
+    if (user?.subjects?.length > 0) {
+      setSubject(user.subjects[0]);
+    }
+  }, [user]);
 
-    setCards(res.data);
-    setCurrentIndex(0);
-    setFlipped(false);
-    setKnownCount(0);
-    setShowSummary(false);
+  /* =========================
+     GENERATE FLASHCARDS
+  ========================= */
+  const generateCards = async () => {
+    if (!subject || !topic) {
+      alert("Please select subject and enter topic");
+      return;
+    }
+
+    try {
+      const res = await API.post("/flashcards/generate", {
+        subject,
+        topic,
+        difficulty,
+        numberOfCards,
+      });
+
+      setCards(res.data);
+      setCurrentIndex(0);
+      setFlipped(false);
+      setKnownCount(0);
+      setShowSummary(false);
+
+    } catch (err) {
+      console.error("Flashcard error:", err);
+    }
   };
 
+  /* =========================
+     NEXT CARD
+  ========================= */
   const handleNext = (known) => {
     if (known) setKnownCount((prev) => prev + 1);
 
@@ -60,16 +90,21 @@ export default function Flashcards() {
               Generate Flashcards
             </h2>
 
+            {/* SUBJECT (Dynamic from user) */}
             <select
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               className="w-full p-3 bg-gray-100 rounded-xl"
             >
-              <option>DBMS</option>
-              <option>DSA</option>
-              <option>CN</option>
+              <option value="">Select Subject</option>
+              {user?.subjects?.map((sub, index) => (
+                <option key={index} value={sub}>
+                  {sub}
+                </option>
+              ))}
             </select>
 
+            {/* TOPIC */}
             <input
               type="text"
               placeholder="Enter Topic"
@@ -78,6 +113,7 @@ export default function Flashcards() {
               className="w-full p-3 bg-gray-100 rounded-xl"
             />
 
+            {/* DIFFICULTY */}
             <div className="flex gap-2 justify-center">
               {["Easy", "Medium", "Hard"].map((lvl) => (
                 <button
@@ -94,13 +130,17 @@ export default function Flashcards() {
               ))}
             </div>
 
+            {/* NUMBER OF CARDS */}
             <select
               value={numberOfCards}
-              onChange={(e) => setNumberOfCards(e.target.value)}
+              onChange={(e) =>
+                setNumberOfCards(Number(e.target.value))
+              }
               className="w-full p-3 bg-gray-100 rounded-xl"
             >
               <option value={5}>5 Cards</option>
               <option value={10}>10 Cards</option>
+              <option value={15}>15 Cards</option>
             </select>
 
             <button
@@ -129,15 +169,15 @@ export default function Flashcards() {
               </p>
             </div>
 
-            {/* Vertical Card */}
-            <div
-              onClick={() => setFlipped(!flipped)}
-              className="cursor-pointer"
-            >
-              <div className="relative w-full h-80 transition-transform duration-500"
+            {/* Flip Card */}
+            <div onClick={() => setFlipped(!flipped)} className="cursor-pointer">
+              <div
+                className="relative w-full h-80 transition-transform duration-500"
                 style={{
                   transformStyle: "preserve-3d",
-                  transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)"
+                  transform: flipped
+                    ? "rotateY(180deg)"
+                    : "rotateY(0deg)",
                 }}
               >
                 {/* Front */}
@@ -155,7 +195,7 @@ export default function Flashcards() {
                   className="absolute w-full h-full bg-purple-100 rounded-2xl flex items-center justify-center p-6 text-center"
                   style={{
                     transform: "rotateY(180deg)",
-                    backfaceVisibility: "hidden"
+                    backfaceVisibility: "hidden",
                   }}
                 >
                   <p>{cards[currentIndex].answer}</p>
@@ -205,7 +245,6 @@ export default function Flashcards() {
             </button>
           </div>
         )}
-
       </div>
     </div>
   );

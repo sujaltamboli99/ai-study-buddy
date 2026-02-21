@@ -8,6 +8,7 @@ import aiRoutes from "./routes/aiRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import flashcardRoutes from "./routes/flashcardRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/quiz", quizRoutes);
 app.use("/api/analytics", analyticsRoutes);
